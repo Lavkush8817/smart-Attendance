@@ -96,10 +96,10 @@
         if (mode === 'register') {
           formData.append('name', document.getElementById('name').value);
           formData.append('student_id', document.getElementById('student_id').value);
-          url = 'http://127.0.0.1:8000/register';
+          url = 'https://smart-attendance-1-mu38.onrender.com/register';
           successMsg = '✅ User registered successfully!';
         } else {
-          url = 'http://127.0.0.1:8000/mark-attendance';
+          url = 'https://smart-attendance-1-mu38.onrender.com/mark-attendance';
           successMsg = '✅ Attendance marked successfully!';
         }
 
