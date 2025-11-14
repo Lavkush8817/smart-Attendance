@@ -1,0 +1,32 @@
+# Explanation files (not for repo)
+*_EXPLANATION.md
+ARCHITECTURE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
+# Data files
+backend/users.json
+backend/attendance.json
+backend/attendance.xlsx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/tmp/

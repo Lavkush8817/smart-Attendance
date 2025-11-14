@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face Recognition Attendance</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎓 Smart Attendance</h1>
+    <p class="subtitle">AI-Powered Face Recognition System</p>
+    
+    <div class="video-container">
+      <video id="video" autoplay playsinline></video>
+      <div class="video-overlay"></div>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>Camera Active</span>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="name">👤 Full Name</label>
+      <input id="name" type="text" placeholder="Enter your full name">
+    </div>
+
+    <div class="input-group">
+      <label for="student_id">🎫 Student ID</label>
+      <input id="student_id" type="text" placeholder="Enter your student ID">
+    </div>
+
+    <div class="button-group">
+      <button class="btn-register" onclick="capture('register')">
+        <span>📝 Register User</span>
+      </button>
+      <button class="btn-attendance" onclick="capture('attendance')">
+        <span>✅ Mark Attendance</span>
+      </button>
+    </div>
+
+    <div id="msg" class="message"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const msgEl = document.getElementById('msg');
+    let isProcessing = false;
+
+    // Initialize camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        showMessage('error', '❌ Camera access denied. Please allow camera permissions.');
+        console.error('Camera error:', err);
+      });
+
+    async function capture(mode) {
+      if (isProcessing) return;
+
+      // Validate inputs for registration
+      if (mode === 'register') {
+        const name = document.getElementById('name').value.trim();
+        const studentId = document.getElementById('student_id').value.trim();
+        
+        if (!name || !studentId) {
+          showMessage('error', '⚠️ Please fill in both name and student ID');
+          return;
+        }
+      }
+
+      isProcessing = true;
+      const btn = event.target.closest('button');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span>Processing<span class="loading"></span></span>';
+      btn.disabled = true;
+
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        // Flip the image horizontally to match what user sees
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0);
+
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+        const formData = new FormData();
+        formData.append('photo', blob);
+
+        let url, successMsg;
+        if (mode === 'register') {
+          formData.append('name', document.getElementById('name').value);
+          formData.append('student_id', document.getElementById('student_id').value);
+          url = 'http://127.0.0.1:8000/register';
+          successMsg = '✅ User registered successfully!';
+        } else {
+          url = 'http://127.0.0.1:8000/mark-attendance';
+          successMsg = '✅ Attendance marked successfully!';
+        }
+
+        const res = await fetch(url, { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (res.ok) {
+          showMessage('success', data.message || successMsg);
+          if (mode === 'register') {
+            document.getElementById('name').value = '';
+            document.getElementById('student_id').value = '';
+          }
+        } else {
+          showMessage('error', '❌ ' + (data.error || 'Operation failed'));
+        }
+      } catch (error) {
+        showMessage('error', '❌ Connection error. Please check if the server is running.');
+        console.error('Error:', error);
+      } finally {
+        isProcessing = false;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    function showMessage(type, text) {
+      msgEl.className = 'message ' + type;
+      msgEl.textContent = text;
+      msgEl.style.display = 'block';
+      
+      setTimeout(() => {
+        msgEl.style.display = 'none';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
