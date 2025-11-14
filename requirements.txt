@@ -1,7 +1,9 @@
 fastapi
 uvicorn
 deepface
-opencv-python
+opencv-python-headless
 pillow
 python-multipart
 openpyxl
+tf-keras
+tensorflow
